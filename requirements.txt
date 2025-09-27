@@ -1,0 +1,4 @@
+openai>=1.45.0
+semantic-kernel>=1.15.0
+python-dotenv>=1.0.1
+jsonschema>=4.23.0
