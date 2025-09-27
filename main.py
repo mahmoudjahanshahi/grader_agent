@@ -16,7 +16,7 @@ from agents.a5_report import summarize
 
 def export_csv(rows: Iterable[tuple[str,int,str]], out_csv_path: Path) -> None:
     out_csv_path.parent.mkdir(parents=True, exist_ok=True)
-    with out_csv_path.open("w", newline="", encoding="utf-8") as f:
+    with out_csv_path.open("w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f)
         w.writerow(["student_id", "grade", "comment"])
         for sid, grade, comment in rows:
@@ -81,7 +81,7 @@ def run_pipeline_for_student(
     )
     rep = summarize(
         a3={"scores": a3.scores, "total": a3.total, "max_total": a3.max_total},
-        a4={"strengths": a4.strengths, "gaps": a4.gaps, "actions": a4.actions, "tone": a4.tone},
+        a4={"strengths": a4.strengths, "gaps": a4.gaps, "tone": a4.tone},
         rubric=rubric,
     )
     return {
@@ -91,7 +91,7 @@ def run_pipeline_for_student(
         "comment_html": rep.comment_html,
         "a2": {"coverage": a2.coverage, "gaps": a2.gaps, "warnings": a2.warnings},
         "a3": {"scores": a3.scores, "total": a3.total, "max_total": a3.max_total},
-        "a4": {"strengths": a4.strengths, "gaps": a4.gaps, "actions": a4.actions, "tone": a4.tone},
+        "a4": {"strengths": a4.strengths, "gaps": a4.gaps, "tone": a4.tone},
     }
 
 # ---------- CLI ----------

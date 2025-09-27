@@ -64,7 +64,7 @@ _REQ_USER_TMPL = """INSTRUCTIONS:
 {instructions_text}
 
 Rules:
-- 3–10 requirements total.
+- 3–5 requirements total.
 - Use neutral wording that fits any correct solution approach.
 - No meta guidance, no examples, no restatements of the same idea.
 - Use IDs REQ_1..REQ_N.
@@ -137,9 +137,13 @@ def load_requirements_from_text(instructions_text: str, *, client=None, model: s
 _SYSTEM = (
     "You align a student submission to a list of assignment requirements.\n"
     "Return STRICT JSON only with keys: coverage, gaps, warnings.\n"
-    "For each requirement id, set status = met|partial|missed and include a short evidence quote from the submission.\n"
-    "Do not invent facts not present in the submission. No scores.\n"
-    "Return JSON where 'gaps' and 'warnings' are arrays (use [] if empty)."
+    "Decision rules per requirement:\n"
+    "- met: functionally equivalent step is present (synonyms/implicit phrasing count). Provide a concrete quote.\n"
+    "- partial: step is present but incomplete/ambiguous; quote the best evidence.\n"
+    "- missed: step is absent after careful search; leave evidence empty.\n"
+    "Prefer 'met' over 'partial' when evidence shows a full step even if phrasing differs.\n"
+    "Do not grade on style or order. Ignore examples from the instructions.\n"
+    "No scores. 'gaps' and 'warnings' must be arrays (use [] if empty)."
 )
 
 _USER_TMPL = """REQUIREMENTS_LIST (JSON):
@@ -157,7 +161,7 @@ def align_to_instructions(
     requirements: List[Dict[str, str]],
     *,
     model: str | None = None,
-    temperature: float = 0.1
+    temperature: float = 0.0
 ) -> A2Result:
     """
     Pure function: takes cleaned submission text and a requirements list.
