@@ -1,0 +1,4 @@
+Sorting Cards
+1. Mix the cards around.
+2. Put them in order starting from the lowest to the highest.
+3. When they look right, you are done.

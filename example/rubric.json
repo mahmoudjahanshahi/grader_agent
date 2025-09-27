@@ -1,0 +1,24 @@
+{
+  "criteria": [
+    {
+      "id": "C1",
+      "text": "Clarity of Instructions — Steps are numbered and unambiguous; a robot could follow without guessing.",
+      "max_score": 40
+    },
+    {
+      "id": "C2",
+      "text": "Completeness of Process — Algorithm covers the full task from unsorted cards to completely sorted order, including repetition and stopping conditions.",
+      "max_score": 30
+    },
+    {
+      "id": "C3",
+      "text": "Correctness of Logic — Steps, if executed, will produce correctly sorted cards.",
+      "max_score": 20
+    },
+    {
+      "id": "C4",
+      "text": "Formatting and Presentation — Submission is a text file (.txt or .md) with numbered steps, properly organized.",
+      "max_score": 10
+    }
+  ]
+}

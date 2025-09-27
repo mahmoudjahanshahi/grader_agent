@@ -1,0 +1,22 @@
+In this assignment, you will practice writing a clear algorithm. Algorithms are precise, step-by-step instructions that a robot could follow exactly.
+
+Task
+Imagine you have 10 cards, each with a different number. The numbers are not necessarily consecutive.
+
+Your goal is to sort the cards in order from smallest to largest.
+
+Write clear, step-by-step instructions that a robot could execute to complete the task.
+
+Do not just say “sort the cards.” Break the process into unambiguous actions.
+
+Example of Clarity Required
+Here is an example algorithm for a different task: finding the card with the maximum number.
+
+Pick up the first card in the set and place it in front of you. Call this card current maximum card.
+Check if there are any cards left that have not been inspected.
+If there are no remaining cards, STOP. The current maximum card is the card with the largest number, if there are remaining cards, pick up the next card.
+Compare the number on the new card with the number on the current maximum card.
+If the number on the new card is greater than the number on the current maximum card, replace the current maximum card with the new card, if it is not greater, keep the current maximum card.
+Put the inspected card aside so it is not checked again.
+Go back to Step 2.
+Your sorting instructions should have the same level of detail and clarity.

@@ -1,0 +1,10 @@
+Algorithm to Sort 10 Cards from Smallest to Largest
+1. Place all 10 cards face up in a row in front of you.
+2. Select the leftmost card. Call it the “current card.”
+3. Compare the number on the current card with the number on the card immediately to its right.
+4. If the current card is larger than the card to its right, swap their positions.
+5. Move one card to the right and make that the new current card.
+6. Repeat steps 3–5 until you reach the last card in the row.
+7. When you reach the end, return to the first card on the left and repeat the same process.
+8. Continue repeating this process until you can go from the first card to the last card without making any swaps.
+9. At that point, all cards are arranged from smallest to largest. STOP.
