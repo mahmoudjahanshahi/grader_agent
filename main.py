@@ -64,14 +64,13 @@ class CanvasClient:
 def run_pipeline_for_student(
     client: AzureOpenAI,
     submission_text: str,
-    reqs_text: str,
+    reqs: list[dict[str, str]],
     rubric: Dict[str, Any],
     *,
     grading_mode: Literal["forgiving","realistic","strict"] = "realistic",
     tone_mode: str = "neutral",
 ) -> dict:
     a1 = clean_text(submission_text)
-    reqs = load_requirements_from_text(reqs_text, client=client)
     a2 = align_to_instructions(client, a1.text_clean, reqs)
     a3 = grade_by_rubric(client, coverage=a2.__dict__, rubric=rubric, mode=grading_mode)
     a4 = build_feedback(
@@ -124,11 +123,6 @@ def main():
         default="encouraging",
         help="Tone of instructor feedback. Controls wording of Agent 4 output. (default: %(default)s)",
     )
-    p.add_argument(
-        "--out-csv",
-        default="grades_and_comments.csv",
-        help="Path for CSV output when using --mode=csv. Ignored in canvas mode. (default: %(default)s)",
-    )
     # Canvas-only params
     p.add_argument(
         "--canvas-base-url",
@@ -162,6 +156,8 @@ def main():
     assign_dir = Path(args.dir)
     instr_path = assign_dir / "instructions.txt"
     rubric_json_path = assign_dir / "rubric.json"
+    reqs_cache_path = assign_dir / "requirements.json"
+    out_csv = assign_dir / "grades_and_comments.csv"
     subs_dir = assign_dir / "submissions"
     outputs_dir = assign_dir / "outputs"
     outputs_dir.mkdir(parents=True, exist_ok=True)
@@ -169,6 +165,14 @@ def main():
     reqs_text = instr_path.read_text(encoding="utf-8")
     rubric = json.loads(rubric_json_path.read_text(encoding="utf-8"))
     rubric = validate_rubric(rubric)
+
+    # extract once (or load from cache)
+    if reqs_cache_path.exists():
+        requirements = json.loads(reqs_cache_path.read_text(encoding="utf-8"))
+    else:
+        # uses LLM extractor if client is provided (per your a2 loader)
+        requirements = load_requirements_from_text(reqs_text, client=client)
+        reqs_cache_path.write_text(json.dumps(requirements, indent=2, ensure_ascii=False), encoding="utf-8")
 
     # iterate submissions (.txt and .md)
     rows_for_csv: list[tuple[str,int,str]] = []
@@ -178,7 +182,7 @@ def main():
         result = run_pipeline_for_student(
             client,
             submission_text,
-            reqs_text,
+            requirements,
             rubric,
             grading_mode=args.grading_mode,
             tone_mode=args.tone,
@@ -194,7 +198,7 @@ def main():
 
 
     if args.mode == "csv":
-        export_csv(rows_for_csv, Path(args.out_csv))
+        export_csv(rows_for_csv, Path(out_csv))
     else:
         # Canvas push
         base_url = args.canvas_base_url or os.environ.get("CANVAS_BASE_URL")

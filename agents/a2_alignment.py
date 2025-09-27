@@ -54,23 +54,24 @@ _REQ_SCHEMA: Dict[str, Any] = {
 }
 
 _REQ_SYSTEM = (
-    "Extract atomic, assessable requirements from the instructor's instructions.\n"
-    "IGNORE examples, anecdotes, and background sections.\n"
-    "Include format constraints only if they constrain the deliverable.\n"
-    "Return STRICT JSON: {\"requirements\": [{\"id\":\"REQ_1\",\"text\":\"...\"}, ...]}"
+    "Extract atomic, assessable assignment requirements from the INSTRUCTIONS.\n"
+    "Ignore examples/samples. Do NOT include file-format constraints.\n"
+    "Avoid redundancy. Each requirement must be independently testable against a submission.\n"
+    "Return STRICT JSON: {\"requirements\":[{\"id\":\"REQ_1\",\"text\":\"...\"}, ...]}"
 )
 
 _REQ_USER_TMPL = """INSTRUCTIONS:
 {instructions_text}
 
 Rules:
-- Each requirement must be testable against a student submission.
-- Prefer 3–12 concise requirements.
-- Do NOT treat sample algorithms or 'Example' sections as requirements.
-- Use 'REQ_1', 'REQ_2', ... ids.
+- 3–10 requirements total.
+- Use neutral wording that fits any correct solution approach.
+- No meta guidance, no examples, no restatements of the same idea.
+- Use IDs REQ_1..REQ_N.
 
 Return JSON only.
 """
+
 
 def _extract_requirements_via_llm(client, instructions_text: str, *, model: str | None = None) -> List[Dict[str, str]]:
     if not isinstance(instructions_text, str) or not instructions_text.strip():
@@ -105,7 +106,7 @@ def load_requirements_from_text(instructions_text: str, *, client=None, model: s
     if client is not None:
         return _extract_requirements_via_llm(client, instructions_text, model=model)
 
-    # --- fallback: your existing heuristic parsing ---
+    # --- fallback ---
     if not isinstance(instructions_text, str):
         raise TypeError("instructions_text must be a string")
     lines = [ln.rstrip() for ln in instructions_text.splitlines()]
