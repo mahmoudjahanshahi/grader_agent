@@ -56,9 +56,9 @@ example/
 ├── instructions.txt
 ├── rubric.json
 └── submissions/
-├── student1.txt
-└── student2.md
-└── student3.txt
+    ├── student1.txt
+    └── student2.md
+    └── student3.txt
 
 ````
 
@@ -67,11 +67,7 @@ example/
 From the project root:
 
 ```bash
-python main.py \
-  --dir example \
-  --mode csv \
-  --grading-mode realistic \
-  --tone encouraging \
+python main.py --dir example 
 ````
 
 ### CLI Options
@@ -80,9 +76,4 @@ python main.py \
 * `--mode`: `csv` (default) to write results to a file, or `canvas` to post directly via Canvas API (canvas mode is not developed/tested yet!)
 * `--grading-mode`: `forgiving` (default), `realistic`, or `strict`
 * `--tone`: Feedback tone for comments (`encouraging` (default), `neutral`, `formal`, `critical`)
-
-## Output
-
-* **CSV Mode**: Produces a CSV with columns `student_id, grade, comment`
-* **Canvas Mode**: Posts grades and feedback comments directly to Canvas (canvas mode is not developed/tested yet!)
-* **Artifacts**: For debugging, intermediate agent outputs (`a2`, `a3`, `a4`) are saved in `outputs/`
+* `--help`: Use help to see the complete options' list
