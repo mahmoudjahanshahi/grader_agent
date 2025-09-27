@@ -142,6 +142,8 @@ _SYSTEM = (
     "- partial: step is present but incomplete/ambiguous; quote the best evidence.\n"
     "- missed: step is absent after careful search; leave evidence empty.\n"
     "Prefer 'met' over 'partial' when evidence shows a full step even if phrasing differs.\n"
+    "Be forgiving in your assessments.\n"
+    "Assume alignment when you are not sure.\n"
     "Do not grade on style or order. Ignore examples from the instructions.\n"
     "No scores. 'gaps' and 'warnings' must be arrays (use [] if empty)."
 )
