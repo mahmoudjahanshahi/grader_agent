@@ -72,9 +72,9 @@ def test_pipeline_a1_to_a5_live_model():
     # A5
     rep = summarize(
         a3={"scores": a3.scores, "total": a3.total, "max_total": a3.max_total},
-        a4={"strengths": a4.strengths, "gaps": a4.gaps, "actions": a4.actions, "tone": a4.tone},
+        a4={"strengths": a4.strengths, "gaps": a4.gaps, "actions": a4.actions},
         rubric=rubric
     )
     assert isinstance(rep, ReportSummary)
     assert rep.grade == int(a3.total)
-    assert str(rep.comment_text) and str(rep.comment_md) and str(rep.comment_html)
+    assert str(rep.comment_text) and str(rep.comment_html)

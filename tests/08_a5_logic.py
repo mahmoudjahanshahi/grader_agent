@@ -15,7 +15,6 @@ def _a4():
         "strengths": ["Focused argument"],
         "gaps": ["Conclusion is brief"],
         "actions": ["Expand conclusion", "Add one source"],
-        "tone": "encouraging",
     }
 
 def _rubric():
@@ -31,26 +30,21 @@ def test_summarize_shapes_and_pass_through():
     assert isinstance(rep, ReportSummary)
     assert rep.grade == 12 and rep.max_total == 15
     assert isinstance(rep.comment_text, str)
-    assert isinstance(rep.comment_md, str)
     assert isinstance(rep.comment_html, str)
 
-def test_text_contains_tone_and_sections():
+def test_text_contains_sections_no_tone():
     rep = summarize(_a3(), _a4(), _rubric())
     t = rep.comment_text
-    assert "tone: encouraging" in t
+    assert "Total: 12 / 15" in t
     assert "Strengths:" in t and "Gaps:" in t and "Next actions:" in t
+    assert "tone:" not in t  # tone removed from output
 
-def test_markdown_table_and_pipe_escaping():
-    rep = summarize(_a3(), _a4(), _rubric())
-    md = rep.comment_md
-    assert "| Criterion | Score | Why |" in md
-    # justification has a pipe, should be escaped
-    assert "Two sources \\| peer-reviewed" in md
-
-def test_html_uses_rubric_names_and_escapes():
+def test_html_table_and_content():
     rep = summarize(_a3(), _a4(), _rubric())
     html = rep.comment_html
-    # rubric-friendly names present
+    # table structure present
+    assert "<table" in html and "<thead" in html and "<tbody" in html
+    # rubric names are used
     assert "Thesis clarity" in html and "Use of evidence" in html
-    # basic escaping: the pipe should not break HTML
+    # justification with pipe renders safely
     assert "Two sources | peer-reviewed" in html

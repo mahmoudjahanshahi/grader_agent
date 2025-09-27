@@ -8,7 +8,6 @@ class ReportSummary:
     grade: int                 # total points (int)
     max_total: int             # max points
     comment_text: str          # plain text body
-    comment_md: str            # Markdown body
     comment_html: str          # HTML body
 
 # ---------- helpers ----------
@@ -24,8 +23,7 @@ def _rows_from_a3(a3: Dict[str, Any]) -> List[tuple[str, int, int, str]]:
 
 def render_text(a3: Dict[str, Any], a4: Dict[str, Any]) -> str:
     total = int(a3.get("total", 0)); max_total = int(a3.get("max_total", 0))
-    tone = a4.get("tone", "")
-    lines = [f"Total: {total} / {max_total}  (tone: {tone})", ""]
+    lines = [f"Total: {total} / {max_total}", ""]
     lines.append("Per-criterion:")
     for cid, score, mx, why in _rows_from_a3(a3):
         lines.append(f"- {cid}: {score}/{mx} — {why}")
@@ -38,25 +36,8 @@ def render_text(a3: Dict[str, Any], a4: Dict[str, Any]) -> str:
     bl("Next actions", a4.get("actions", []))
     return "\n".join(lines).strip()
 
-def render_md(a3: Dict[str, Any], a4: Dict[str, Any]) -> str:
-    total = int(a3.get("total", 0)); max_total = int(a3.get("max_total", 0))
-    tone = a4.get("tone", "")
-    lines = [f"**Total:** {total} / {max_total}  \n_Tone: {tone}_\n"]
-    lines += ["| Criterion | Score | Why |", "|---|---:|---|"]
-    for cid, score, mx, why in _rows_from_a3(a3):
-        lines.append(f"| {cid} | {score} / {mx} | {why.replace('|','\\|')} |")
-    def bl(h, items):
-        if items:
-            lines.append(f"\n## {h}")
-            for it in items: lines.append(f"- {it}")
-    bl("Strengths", a4.get("strengths", []))
-    bl("Gaps", a4.get("gaps", []))
-    bl("Next actions", a4.get("actions", []))
-    return "\n".join(lines)
-
 def render_html(a3: Dict[str, Any], a4: Dict[str, Any], rubric: Dict[str, Any] | None = None) -> str:
     total = int(a3.get("total", 0)); max_total = int(a3.get("max_total", 0))
-    tone = escape(a4.get("tone", "") or "")
     # optional pretty names from rubric
     name_map = {c["id"]: c.get("text", c["id"]) for c in (rubric or {}).get("criteria", [])}
     rows = []
@@ -70,7 +51,7 @@ def render_html(a3: Dict[str, Any], a4: Dict[str, Any], rubric: Dict[str, Any] |
     actions = "".join(f"<li>{escape(a)}</li>" for a in a4.get("actions", []))
     return f"""<div style="font-family:system-ui,Arial,sans-serif;line-height:1.45">
   <h2 style="margin:0 0 8px">Assignment Feedback</h2>
-  <p style="margin:0 0 12px"><strong>Total:</strong> {total} / {max_total} <span style="color:#555">({tone})</span></p>
+  <p style="margin:0 0 12px"><strong>Total:</strong> {total} / {max_total}</p>
   <table cellpadding="6" cellspacing="0" border="1" style="border-collapse:collapse;width:100%;margin:8px 0">
     <thead style="background:#f6f6f6"><tr><th align="left">Criterion</th><th align="left">Score</th><th align="left">Why</th></tr></thead>
     <tbody>{''.join(rows)}</tbody>
@@ -93,6 +74,5 @@ def summarize(a3: Dict[str, Any], a4: Dict[str, Any], rubric: Dict[str, Any] | N
     grade = int(a3.get("total", 0))
     max_total = int(a3.get("max_total", 0))
     txt = render_text(a3, a4)
-    md = render_md(a3, a4)
     html = render_html(a3, a4, rubric)
-    return ReportSummary(grade=grade, max_total=max_total, comment_text=txt, comment_md=md, comment_html=html)
+    return ReportSummary(grade=grade, max_total=max_total, comment_text=txt, comment_html=html)
