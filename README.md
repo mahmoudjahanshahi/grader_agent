@@ -11,10 +11,10 @@
 
 1. Navigate to settings tab in your repository
 2. Under Secrets and variables, choose Codespaces
-3. Add new repository secrets using the credentials from yopur Azure gpt model deployment page
+3. Add new repository secrets using the credentials from your Azure gpt model deployment page
 4. Name you secrets. For gpt-5-chat example:
     - AZURE_OPENAI_ENDPOINT=https://res-oai-grader.openai.azure.com/
     - AZURE_OPENAI_API_KEY=<your-api-key>
     - AZURE_OPENAI_API_VERSION=2025-01-01-preview
     - AZURE_OPENAI_DEPLOYMENT=gpt-5-chat
-5. Test your stup by running `python smoke_test.py` in the terminal.
+5. Test your setup by running `python tests/00_openai.py` in the terminal.
