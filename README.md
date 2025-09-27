@@ -57,9 +57,8 @@ example/
 ├── rubric.json
 └── submissions/
     ├── student1.txt
-    └── student2.md
+    ├── student2.md
     └── student3.txt
-
 ````
 
 ## Running the Grader
@@ -73,7 +72,7 @@ python main.py --dir example
 ### CLI Options
 
 * `--dir` (required): Path to assignment folder
-* `--mode`: `csv` (default) to write results to a file, or `canvas` to post directly via Canvas API (canvas mode is not developed/tested yet!)
+* `--mode`: `csv` (default) to write results to a file, or `canvas` to post directly via Canvas API (**CAUTION:** canvas mode is not developed/tested yet!)
 * `--grading-mode`: `forgiving` (default), `realistic`, or `strict`
 * `--tone`: Feedback tone for comments (`encouraging` (default), `neutral`, `formal`, `critical`)
 * `--help`: Use help to see the complete options' list
