@@ -38,5 +38,4 @@ def test_a4_integration_live_model():
     res = build_feedback(client, grade_json, coverage_json, tone_mode="neutral")
     assert isinstance(res, A4Result)
     assert len(res.strengths) >= 1
-    assert len(res.actions) >= 1
     assert res.tone == "neutral"

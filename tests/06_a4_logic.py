@@ -38,26 +38,22 @@ def _coverage_json():
 def test_a4_shapes_and_tone_control():
     payload = {
         "strengths": ["Clear thesis", "Good structure"],
-        "gaps": ["Conclusion brief"],
-        "actions": ["Expand conclusion", "Add one scholarly source"]
+        "gaps": ["Conclusion brief"]
     }
     client = MockClient(payload)
     res = build_feedback(client, _grade_json(), _coverage_json(), model="dummy", tone_mode="encouraging")
     assert isinstance(res, A4Result)
     assert len(res.strengths) >= 1
-    assert len(res.actions) >= 1
     assert res.tone == "encouraging"  # instructor-controlled
 
 def test_a4_normalizes_bad_shapes():
     # Model returns wrong shapes; agent should normalize
     payload = {
         "strengths": {"0": "Clear thesis"},
-        "gaps": {},
-        "actions": "Add citations"
+        "gaps": {}
     }
     client = MockClient(payload)
     res = build_feedback(client, _grade_json(), None, model="dummy", tone_mode="strict")
     assert res.tone == "strict"
     assert res.strengths == ["Clear thesis"]
     assert res.gaps == []
-    assert res.actions == ["Add citations"]

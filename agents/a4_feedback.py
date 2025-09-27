@@ -7,11 +7,10 @@ from jsonschema import validate
 # -------- Output contract (tone is optional) --------
 _FEEDBACK_SCHEMA: Dict[str, Any] = {
     "type": "object",
-    "required": ["strengths", "gaps", "actions"],
+    "required": ["strengths", "gaps"],
     "properties": {
         "strengths": {"type": "array", "items": {"type": "string"}},
         "gaps":       {"type": "array", "items": {"type": "string"}},
-        "actions":    {"type": "array", "items": {"type": "string"}},
         "tone":       {"type": "string"}
     },
     "additionalProperties": False
@@ -21,7 +20,6 @@ _FEEDBACK_SCHEMA: Dict[str, Any] = {
 class A4Result:
     strengths: List[str]
     gaps: List[str]
-    actions: List[str]
     tone: str | None = None
 
 _SYSTEM = (
@@ -41,10 +39,9 @@ COVERAGE_JSON (optional):
 Write feedback:
 - 2–4 strengths (what worked, with brief evidence references).
 - 2–4 gaps (what’s missing or weak).
-- 3–5 actions (clear next steps).
 - Keep sentences short and concrete. No fluff. No external facts.
 
-Return JSON only with keys: strengths, gaps, actions.
+Return JSON only with keys: strengths, gaps.
 """
 
 def build_feedback(
@@ -62,7 +59,7 @@ def build_feedback(
       - coverage_json: optional A2 output (for evidence wording)
       - tone_mode: instructor-controlled tone descriptor applied to the feedback
     Output:
-      - A4Result with strengths, gaps, actions; tone is set to tone_mode
+      - A4Result with strengths, gaps; tone is set to tone_mode
     """
     if not isinstance(grade_json, dict) or "scores" not in grade_json:
         raise ValueError("grade_json must be A3 output with key 'scores'")
@@ -86,7 +83,7 @@ def build_feedback(
     data = json.loads(resp.choices[0].message.content)
 
     # Normalize arrays
-    for k in ("strengths", "gaps", "actions"):
+    for k in ("strengths", "gaps"):
         v = data.get(k, [])
         if isinstance(v, dict):
             v = [str(x) for x in v.values()] if v else []
@@ -105,6 +102,5 @@ def build_feedback(
     return A4Result(
         strengths=data["strengths"],
         gaps=data["gaps"],
-        actions=data["actions"],
         tone=data.get("tone"),
     )
