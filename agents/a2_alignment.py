@@ -34,19 +34,78 @@ _A2_SCHEMA: Dict[str, Any] = {
     "additionalProperties": False
 }
 
-# ---- Requirement extraction from plain text instructions ----
+# ---- LLM requirement extraction ----
+_REQ_SCHEMA: Dict[str, Any] = {
+    "type": "object",
+    "required": ["requirements"],
+    "properties": {
+        "requirements": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "required": ["id", "text"],
+                "properties": {"id": {"type": "string"}, "text": {"type": "string"}},
+                "additionalProperties": False
+            }
+        }
+    },
+    "additionalProperties": False
+}
+
+_REQ_SYSTEM = (
+    "Extract atomic, assessable requirements from the instructor's instructions.\n"
+    "IGNORE examples, anecdotes, and background sections.\n"
+    "Include format constraints only if they constrain the deliverable.\n"
+    "Return STRICT JSON: {\"requirements\": [{\"id\":\"REQ_1\",\"text\":\"...\"}, ...]}"
+)
+
+_REQ_USER_TMPL = """INSTRUCTIONS:
+{instructions_text}
+
+Rules:
+- Each requirement must be testable against a student submission.
+- Prefer 3–12 concise requirements.
+- Do NOT treat sample algorithms or 'Example' sections as requirements.
+- Use 'REQ_1', 'REQ_2', ... ids.
+
+Return JSON only.
+"""
+
+def _extract_requirements_via_llm(client, instructions_text: str, *, model: str | None = None) -> List[Dict[str, str]]:
+    if not isinstance(instructions_text, str) or not instructions_text.strip():
+        raise ValueError("instructions_text is empty")
+    model_name = model or os.environ["AZURE_OPENAI_DEPLOYMENT"]
+    prompt = _REQ_USER_TMPL.format(instructions_text=instructions_text.strip())
+    resp = client.chat.completions.create(
+        model=model_name,
+        messages=[{"role": "system", "content": _REQ_SYSTEM},
+                  {"role": "user", "content": prompt}],
+        temperature=0.0,
+        response_format={"type": "json_object"},
+    )
+    data = json.loads(resp.choices[0].message.content)
+    validate(instance=data, schema=_REQ_SCHEMA)
+    # normalize ids
+    out: List[Dict[str, str]] = []
+    for i, r in enumerate(data["requirements"], 1):
+        rid = r.get("id") or f"REQ_{i}"
+        out.append({"id": rid, "text": r["text"].strip()})
+    return out
+
+# ---- Requirement extraction ----
 
 _BULLET = re.compile(r"^\s*(?:[-*•·]|[0-9]+[.)])\s+(.*)$")
 _HEADING = re.compile(r"^\s*(?:#+\s+|[A-Z][A-Za-z0-9 ]{3,}:)(.*)$")
 
-def load_requirements_from_text(instructions_text: str) -> List[Dict[str, str]]:
+def load_requirements_from_text(instructions_text: str, *, client=None, model: str | None = None) -> List[Dict[str, str]]:
     """
-    Parse requirements from plain text/Markdown instructions.
-    - Prefer bullet/numbered lines.
-    - Fallback to heading-like lines.
-    - If nothing matches, use the whole text as one requirement.
-    Returns: [{"id":"REQ_1","text":"..."}, ...]
+    Prefer LLM extraction (if client provided). Fallback to bullets/headings.
     """
+    if client is not None:
+        return _extract_requirements_via_llm(client, instructions_text, model=model)
+
+    # --- fallback: your existing heuristic parsing ---
     if not isinstance(instructions_text, str):
         raise TypeError("instructions_text must be a string")
     lines = [ln.rstrip() for ln in instructions_text.splitlines()]
@@ -57,16 +116,14 @@ def load_requirements_from_text(instructions_text: str) -> List[Dict[str, str]]:
         if m:
             txt = m.group(1).strip()
             if txt:
-                reqs.append({"id": f"REQ_{idx}", "text": txt})
-                idx += 1
+                reqs.append({"id": f"REQ_{idx}", "text": txt}); idx += 1
     if not reqs:
         for ln in lines:
             m = _HEADING.match(ln)
             if m:
                 txt = m.group(1).strip() or ln.strip()
                 if txt:
-                    reqs.append({"id": f"REQ_{idx}", "text": txt})
-                    idx += 1
+                    reqs.append({"id": f"REQ_{idx}", "text": txt}); idx += 1
     if not reqs:
         body = " ".join(ln.strip() for ln in lines if ln.strip())[:800]
         if not body:

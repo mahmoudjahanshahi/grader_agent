@@ -71,7 +71,7 @@ def run_pipeline_for_student(
     tone_mode: str = "neutral",
 ) -> dict:
     a1 = clean_text(submission_text)
-    reqs = load_requirements_from_text(reqs_text)
+    reqs = load_requirements_from_text(reqs_text, client=client)
     a2 = align_to_instructions(client, a1.text_clean, reqs)
     a3 = grade_by_rubric(client, coverage=a2.__dict__, rubric=rubric, mode=grading_mode)
     a4 = build_feedback(
@@ -90,6 +90,7 @@ def run_pipeline_for_student(
         "max_total": rep.max_total,
         "comment_text": rep.comment_text,
         "comment_html": rep.comment_html,
+        "a2": {"coverage": a2.coverage, "gaps": a2.gaps, "warnings": a2.warnings},
         "a3": {"scores": a3.scores, "total": a3.total, "max_total": a3.max_total},
         "a4": {"strengths": a4.strengths, "gaps": a4.gaps, "actions": a4.actions, "tone": a4.tone},
     }
@@ -97,17 +98,58 @@ def run_pipeline_for_student(
 # ---------- CLI ----------
 
 def main():
-    p = argparse.ArgumentParser(description="Grader pipeline A1–A5")
-    p.add_argument("--dir", required=True, help="Path to assignment folder")
-    p.add_argument("--mode", choices=["csv","canvas"], default="csv")
-    p.add_argument("--grading-mode", choices=["forgiving","realistic","strict"], default="forgiving")
-    p.add_argument("--tone", choices=["encouraging","neutral","..."], default="encouraging")
-    p.add_argument("--out-csv", default="grades_and_comments.csv")
-    # Canvas params (only used in canvas mode)
-    p.add_argument("--canvas-base-url", help="e.g. https://utk.instructure.com")
-    p.add_argument("--canvas-course-id")
-    p.add_argument("--canvas-assignment-id")
-    p.add_argument("--id-kind", choices=["sis_user_id","login_id","user_id"], default="sis_user_id")
+    p = argparse.ArgumentParser(description="Assignment Grader")
+    p.add_argument(
+        "--dir",
+        required=True,
+        help="Path to the assignment folder (must contain instructions.txt, rubric.json, and submissions/).",
+    )
+    p.add_argument(
+        "--mode",
+        choices=["csv", "canvas"],
+        default="csv",
+        help="Output mode. 'csv' writes results to a CSV file. 'canvas' posts directly to Canvas API. "
+            f"(default: %(default)s)",
+    )
+    p.add_argument(
+        "--grading-mode",
+        choices=["forgiving", "realistic", "strict"],
+        default="forgiving",
+        help="Grading strictness policy. 'forgiving' gives higher floor scores, 'realistic' balances, "
+            "'strict' penalizes every miss. (default: %(default)s)",
+    )
+    p.add_argument(
+        "--tone",
+        choices=["encouraging", "neutral", "formal", "critical"],
+        default="encouraging",
+        help="Tone of instructor feedback. Controls wording of Agent 4 output. (default: %(default)s)",
+    )
+    p.add_argument(
+        "--out-csv",
+        default="grades_and_comments.csv",
+        help="Path for CSV output when using --mode=csv. Ignored in canvas mode. (default: %(default)s)",
+    )
+    # Canvas-only params
+    p.add_argument(
+        "--canvas-base-url",
+        help="Base URL of Canvas instance, e.g., https://utk.instructure.com. "
+            "Required if --mode=canvas.",
+    )
+    p.add_argument(
+        "--canvas-course-id",
+        help="Canvas course ID (numeric). Required if --mode=canvas.",
+    )
+    p.add_argument(
+        "--canvas-assignment-id",
+        help="Canvas assignment ID (numeric). Required if --mode=canvas.",
+    )
+    p.add_argument(
+        "--id-kind",
+        choices=["sis_user_id", "login_id", "user_id"],
+        default="sis_user_id",
+        help="Identifier type used to match submissions with Canvas users. "
+            "Options: sis_user_id, login_id, user_id. (default: %(default)s)",
+    )
     args = p.parse_args()
 
     # Azure client from env
@@ -142,6 +184,7 @@ def main():
             tone_mode=args.tone,
         )
         # write artifacts
+        (outputs_dir / f"{student_id}.a2.json").write_text(json.dumps(result["a2"], indent=2), encoding="utf-8")
         (outputs_dir / f"{student_id}.a3.json").write_text(json.dumps(result["a3"], indent=2), encoding="utf-8")
         (outputs_dir / f"{student_id}.a4.json").write_text(json.dumps(result["a4"], indent=2), encoding="utf-8")
         (outputs_dir / f"{student_id}.feedback.html").write_text(result["comment_html"], encoding="utf-8")
