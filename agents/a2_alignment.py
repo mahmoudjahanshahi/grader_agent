@@ -64,7 +64,7 @@ _REQ_USER_TMPL = """INSTRUCTIONS:
 {instructions_text}
 
 Rules:
-- 3–5 requirements total.
+- 3–8 requirements total.
 - Use neutral wording that fits any correct solution approach.
 - No meta guidance, no examples, no restatements of the same idea.
 - Use IDs REQ_1..REQ_N.
@@ -145,7 +145,10 @@ _SYSTEM = (
     "Be forgiving in your assessments.\n"
     "Assume alignment when you are not sure.\n"
     "Do not grade on style or order. Ignore examples from the instructions.\n"
-    "No scores. 'gaps' and 'warnings' must be arrays (use [] if empty)."
+    "No scores. 'gaps' and 'warnings' must be arrays (use [] if empty).\n"
+    "coverage MUST be an object mapping requirement IDs to objects with keys {status,evidence}.\n"
+    "Example: {'coverage':{'REQ_1':{'status':'met','evidence':'...'} },'gaps':[],'warnings':[]}\n"
+    "Never set a coverage value to a string. Never write 'met: ...' as a string."
 )
 
 _USER_TMPL = """REQUIREMENTS_LIST (JSON):
