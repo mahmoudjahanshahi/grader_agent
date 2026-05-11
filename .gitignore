@@ -1,7 +1,4 @@
 __pycache__/
 .pytest_cache/
-assignment/
 outputs/
-example/
-other/
 .DS_Store
